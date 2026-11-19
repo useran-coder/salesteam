@@ -2523,12 +2523,35 @@ async function stLogout(){
     {k:'home',i:'🏠',n:'업무분석도구 홈',u:B+'bookmark/'},
     {sep:1},
     {k:'sales',i:'📈',n:'매출 분석 도구',u:B+'sales/'},
-    {k:'price',i:'💲',n:'단가표 만들기',u:B+'price/'},
     {k:'purchase',i:'📦',n:'매입 분석 도구',u:B+'purchase/'},
+    {k:'price',i:'💲',n:'단가표 만들기',u:B+'price/'},
+    {k:'material',i:'🧱',n:'원자재 사용현황',u:B+'material/'},
     {k:'cost',i:'🧮',n:'가공비 견적기',u:B+'cost/'},
     {k:'coil',i:'🌀',n:'코일 슬리팅 조합 · 발주기',u:B+'coil/'},
-    {k:'salesteam',i:'👥',n:'영업팀 업무분석',u:B+'salesteam/'}
+    {k:'salesteam',i:'👥',n:'영업팀 업무분석',u:B+'salesteam/'},
+    {k:'codematch',i:'🔗',n:'출고현황 Code Match',u:B+'codematch/'},
+    {k:'subul',i:'🏭',n:'수불관리',u:B+'subul/'}
   ];
+  /* dbf-menu-auto (2026-11-19): 바로가기 목록을 홈페이지(bookmark)의 도구 목록(TOOLS)에서 자동으로 받아 옴
+     → 홈에 도구를 추가하면 모든 도구의 왼쪽 메뉴에 저절로 나타남. 위 목록은 받기 전·실패 때 쓰는 기본값 */
+  var LKEY='dbfMenuToolsV2';
+  function dbfmList(L){ return [LINKS[0],{sep:1}].concat(L); }
+  try{ var lc0=JSON.parse(localStorage.getItem(LKEY)||'null'); if(lc0&&lc0.list&&lc0.list.length>2) LINKS=dbfmList(lc0.list); }catch(_e){}
+  function dbfmFetch(){
+    var lc=null; try{ lc=JSON.parse(localStorage.getItem(LKEY)||'null'); }catch(_e){}
+    if(lc && lc.at && Date.now()-lc.at<30*60000) return;
+    if(!window.fetch) return;
+    fetch(B+'bookmark/',{cache:'no-cache'}).then(function(r){ return r.ok?r.text():''; }).then(function(t){
+      var a=t.indexOf('var TOOLS'), b=a<0?-1:t.indexOf('];',a); if(b<0) return;
+      var seg=t.slice(a,b), re=/key:\s*'([^']+)'\s*,\s*name:\s*'([^']+)'\s*,\s*icon:\s*'([^']+)'[\s\S]*?url:\s*'([^']+)'/g, m, L=[];
+      while((m=re.exec(seg))) L.push({k:m[1],n:m[2],i:m[3],u:m[4]});
+      if(L.length<3) return;
+      try{ localStorage.setItem(LKEY, JSON.stringify({at:Date.now(), list:L})); }catch(_e){}
+      var nl=dbfmList(L);
+      if(JSON.stringify(nl)!==JSON.stringify(LINKS)){ LINKS=nl; if(dr && !dr.classList.contains('on')){ try{ dr.remove(); scrim.remove(); }catch(_e){} dr=null; } }
+    }).catch(function(){});
+  }
+  setTimeout(dbfmFetch, 2500);
   var scrim, dr, btn;
   function build(){
     if(dr) return;
